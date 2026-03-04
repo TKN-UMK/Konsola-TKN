@@ -388,7 +388,7 @@ struct ExampleStructure {
 ExampleStructure exampleData;
 ```
 
-a następnie przy pomocy metod obiektu `file` z klasy `FileManager` zapisywać i odczytywać z pliku:
+Do zapisu i odczytu z pliku należy wykorzystać globalny obiekt `file` klasy `InputManager`. Dostępne metody:
 
 - ### `void file.saveData("TestGameData", &exampleData, sizeof(exampleData))`
 
