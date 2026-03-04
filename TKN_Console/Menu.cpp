@@ -15,9 +15,9 @@ void Menu::loop() {
     if (currentMillis - clockUpdateMillis >= clockUpdateInterval) {
       clockUpdateMillis = currentMillis;
       now = rtc.now();
-      setFastLEDdigit(0, 0, now.hour() / 10);
-      setFastLEDdigit(6, 0, now.hour() % 10);
-      setFastLEDdigit(0, 11, now.minute() / 10);
+      setFastLEDdigit(1, 2, now.hour() / 10);
+      setFastLEDdigit(6, 2, now.hour() % 10);
+      setFastLEDdigit(1, 11, now.minute() / 10);
       setFastLEDdigit(6, 11, now.minute() % 10);
       FastLED.show();
     }
@@ -148,9 +148,8 @@ void Menu::loop() {
 }
 
 void Menu::setFastLEDdigit(uint8_t x, uint8_t y, uint8_t n) {
-  for (uint8_t i = 0; i < 9; i++) {
-    for (uint8_t j = 0; j < 4; j++)
-      setPixel(j + x, i + y, (digitMatrix[n][i] >> (3 - j)) & 1 ? RED : BLACK);
+  for (uint8_t i = 0; i < 3; i++) {
+    for (uint8_t j = 0; j < 7; j++) setPixel(x + i, y + j, (digitMatrix[n][i] & (1 << 6 - j)) ? RED : BLACK);
   }
 }
 
