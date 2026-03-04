@@ -379,24 +379,22 @@ Dostępna jest jedna dodatkowa funkcja globalna z pliku `Engine.h`:
 Dane (np. tablicę wyników w grze) można zapisywać w pamięci nieulotnej (FLASH) jako pliki. Dane te najlepiej przechowywać w dowolnej strukturze:
 
 ```cpp
-struct ExampleStructure {
+struct  {
   uint32_t ExampleArray1[4];
   uint16_t ExampleVariable1;
   uint16_t ExampleVariable2;
-};
-
-ExampleStructure exampleData;
+} exampleData;
 ```
 
 Do zapisu i odczytu z pliku należy wykorzystać globalny obiekt `file` klasy `InputManager`. Dostępne metody:
 
 - ### `void file.saveData("TestGameData", &exampleData, sizeof(exampleData))`
 
-    Pozwala zapisać dane ze zmiennej `exampleData` typu `ExampleStructure` do pliku o nazwie `TestGameData`.
+    Pozwala zapisać dane ze zmiennej strukturalnej `exampleData` do pliku o nazwie `TestGameData`.
 
 - ### `bool file.loadData("TestGameData", &exampleData, sizeof(exampleData))`
 
-    Pozwala wczytać dane z pliku o nazwie `TestGameData` do zmiennej `exampleData` typu `ExampleStructure`. Zwraca `false` jeśli plik nie istnieje.
+    Pozwala wczytać dane z pliku o nazwie `TestGameData` do zmiennej strukturalnej `exampleData`. Zwraca `false` jeśli plik nie istnieje.
 
 ### W nazwie pliku powinno użyć się nazwy gry w celu uniknięcia konfliktu z plikami innych gier.
 
