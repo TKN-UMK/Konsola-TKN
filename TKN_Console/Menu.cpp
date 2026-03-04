@@ -26,11 +26,11 @@ void Menu::loop() {
       brightnessChangeMillis = currentMillis;
       uint16_t adcVal = analogRead(LDR_PIN);
 
-      if (adcVal < 150 && !lowBrightnessMode) {
+      if (adcVal < 300 && !lowBrightnessMode) {
         FastLED.setBrightness(WS2812B_MIN_BRIGHTNESS);
         FastLED.show();
         lowBrightnessMode = true;
-      } else if (adcVal > 350 && lowBrightnessMode) {
+      } else if (adcVal > 400 && lowBrightnessMode) {
         FastLED.setBrightness(WS2812B_MAX_BRIGHTNESS);
         FastLED.show();
         lowBrightnessMode = false;
