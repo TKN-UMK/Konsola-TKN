@@ -150,7 +150,7 @@ void SimGame::loop() {
 
 # Narzędzie do rysowania
 
-Strona [drawingTool.html](drawingTool.html) pozwala na rysowanie po wirtualnym wyświetlaczu, który może być dodatkowo synchronizowany w czasie rzeczywistym z fizycznym wyświetlaczem konsoli. W tym celu należy podłączyć urządzenie do komputera za pomocą kabla USB, z menu ustawień konsoli (kombinacja klawiszy **U** + **L** + **D** + **ESC** w menu wyboru gry) wybrać pozycję **SERIAL DRAW MODE** i nawiązać połączenie za pomocą przycisku **CONNECT** widocznym na stronie narzędzia.
+Narzędzie [Drawing tool](https://tkn-umk.github.io/Konsola-TKN/) pozwala na rysowanie po wirtualnym wyświetlaczu, który może być dodatkowo synchronizowany w czasie rzeczywistym z fizycznym wyświetlaczem konsoli. W tym celu należy podłączyć urządzenie do komputera za pomocą kabla USB, z menu ustawień konsoli (kombinacja klawiszy **U** + **L** + **D** + **ESC** w menu wyboru gry) wybrać pozycję **SERIAL DRAW MODE** i nawiązać połączenie za pomocą przycisku **CONNECT** widocznym na stronie narzędzia.
 
 Rysowanie odbywa się za pomocą lewego oraz prawego przycisku myszy. Kolor przypisany do konkretnego przycisku można zmienić, klikając jedno z pól wyboru w palecie kolorów. Stan wirtualnego wyświetlacza można zapisywać i wczytywać, operując na plikach (przyciski **Export file** oraz **Import file**).
 
@@ -239,7 +239,7 @@ Projekt składa się z plików:
 
     Implementacja metod z menu konsoli.
 
-#### Gry zawarte są w plikach `NazwaGry.h` oraz `NazwaGry.cpp`
+#### Gry zawarte są w plikach `[NazwaGry].h` oraz `[NazwaGry].cpp`
 
 ## Tworzenie i dodawanie własnej gry
 
