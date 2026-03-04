@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Drawing tool</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --panel-color: #2d2d2d;
+            --accent-green: #4CAF50;
+            --accent-red: #d32f2f;
+            --accent-blue: #2196F3;
+            --label-color: #888;
+        }
+
+        body { 
+            margin: 0; display: flex; height: 100vh; background-color: var(--bg-color); 
+            color: white; font-family: 'Segoe UI', sans-serif; 
+            overflow: hidden; user-select: none;
+        }
+        
+        .toolbar { 
+            width: 200px; background-color: var(--panel-color); padding: 10px; 
+            display: flex; flex-direction: column; gap: 10px; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); z-index: 10;
+        }
+        
+        #palette { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; flex-grow: 1; }
+        
+        .swatch { 
+            min-height: 42px; border: 2px solid #444; cursor: pointer; border-radius: 6px;
+            display: flex; align-items: center; padding: 0 10px; font-size: 11px; font-weight: 700;
+        }
+
+        #grid-container { 
+            flex-grow: 1; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; position: relative;
+            padding: 5px;
+        }
+
+        .matrix-wrapper { display: grid; grid-template-columns: 25px auto; grid-template-rows: 25px auto; }
+        
+        .x-labels { grid-column: 2; display: grid; grid-template-columns: repeat(10, 1fr); text-align: center; color: var(--label-color); font-size: 11px; line-height: 25px; }
+        .y-labels { grid-row: 2; display: grid; grid-template-rows: repeat(20, 1fr); text-align: right; padding-right: 8px; color: var(--label-color); font-size: 11px; align-items: center; }
+
+        #grid { 
+            grid-column: 2; grid-row: 2;
+            display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(20, 1fr); 
+            gap: 2px; background-color: #333; border: 2px solid #444; 
+            height: 94vh;
+            aspect-ratio: 10 / 20; 
+        }
+        .cell { background-color: #000; }
+
+        #cursor-coords {
+            position: fixed; bottom: 15px; right: 235px;
+            background: rgba(0,0,0,0.8); padding: 8px 12px;
+            border-radius: 6px; border: 1px solid var(--accent-blue);
+            font-family: monospace; font-size: 12px; color: var(--accent-blue);
+            pointer-events: none; z-index: 100;
+        }
+
+        button { padding: 10px; cursor: pointer; border: none; color: white; border-radius: 6px; font-weight: bold; transition: 0.2s; font-size: 12px; }
+        #btnConnect.disconnected { background-color: var(--accent-green); }
+        #btnConnect.connected { background-color: var(--accent-red); }
+        #btnSend { background: var(--accent-blue); }
+        #btnSend:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-sub { background: #444; font-size: 11px; padding: 6px; }
+        .swatch.active-lpm { outline: 3px solid var(--accent-green); outline-offset: -2px; }
+        .swatch.active-ppm { outline: 3px solid var(--accent-blue); outline-offset: -2px; }
+        hr { border: 0; border-top: 1px solid #444; width: 100%; margin: 2px 0; }
+
+        .autosend-wrapper {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #3a3a3a; padding: 10px; border-radius: 6px;
+        }
+        .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #666; transition: .3s; border-radius: 20px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px;
+            background-color: white; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent-blue); }
+        input:checked + .slider:before { transform: translateX(16px); }
+        .label-text { font-size: 11px; font-weight: bold; }
+
+        /* --- STYLES FOR PALETTE HEADER WITH MOUSE --- */
+        .palette-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 5px 0;
+        }
+        #mouse-svg {
+            width: 35px; /* Mniejsza ikona, by pasowała do nagłówka */
+            height: auto;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.4));
+        }
+        .mouse-body { fill: #444; stroke: #222; stroke-width: 1.5px; }
+        .mouse-scroll { fill: #222; }
+        #mouse-lmb, #mouse-rmb { transition: fill 0.2s ease; stroke: #222; stroke-width: 1px;}
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<div class="toolbar">
+    <h3 style="margin:0; text-align: center; font-size: 0.9em;">CONTROLS</h3>
+    <button id="btnConnect" class="disconnected">CONNECT</button>
+    <hr>
+    <div class="autosend-wrapper">
+        <span class="label-text">Autosend</span>
+        <label class="switch">
+            <input type="checkbox" id="chkAutoSend">
+            <span class="slider"></span>
+        </label>
+    </div>
+    <button id="btnSend" disabled>SEND DATA</button>
+    <hr>
+    <button id="btnExport" class="btn-sub">Export file</button>
+    <button id="btnImport" class="btn-sub">Import file</button>
+    <button id="btnClear" class="btn-sub" style="color: #ff6b6b; margin-top: auto;">Clear matrix</button>
+    <input type="file" id="fileInput" style="display: none;" accept=".disp">
+</div>
+
+<div id="grid-container">
+    <div class="matrix-wrapper">
+        <div></div> 
+        <div class="x-labels" id="xLabels"></div>
+        <div class="y-labels" id="yLabels"></div>
+        <div id="grid" ondragstart="return false;"></div>
+    </div>
+</div>
+
+<div class="toolbar">
+    <div class="palette-header">
+        <svg id="mouse-svg" viewBox="0 0 70 110" xmlns="http://www.w3.org/2000/svg">
+            <path class="mouse-body" d="M35,108 C15,108 2,90 2,65 L2,45 C2,20 15,2 35,2 C55,2 68,20 68,45 L68,65 C68,90 55,108 35,108 Z" />
+            <path id="mouse-lmb" d="M35,2 C15,2 2,20 2,45 L34,45 L34,10 C34,5 35,2 35,2 Z" fill="#555" />
+            <path id="mouse-rmb" d="M36,2 C36,2 36,5 36,10 L36,45 L68,45 C68,20 55,2 35,2 Z" fill="#555" />
+            <rect class="mouse-scroll" x="32" y="10" width="6" height="18" rx="3" />
+        </svg>
+        <h3 style="margin:0; font-size: 0.9em;">PALETTE</h3>
+    </div>
+    <hr>
+    <div id="palette"></div>
+</div>
+
+<div id="cursor-coords">CURSOR: --, --</div>
+
+<script>
+    const COLOR_PALETTE = [
+        { n: "BLACK", c: "#000000" }, { n: "RED", c: "#FF0000" },
+        { n: "ORANGE", c: "#FFAA00" }, { n: "YELLOW", c: "#FFEE00" },
+        { n: "LIGHTGREEN", c: "#72FF59" }, { n: "GREEN", c: "#009000" },
+        { n: "LIGHTBLUE", c: "#00FFFF" }, { n: "BLUE", c: "#0030FF" },
+        { n: "VIOLET", c: "#BC6DFC" }, { n: "PINK", c: "#FF47ED" },
+        { n: "WHITE", c: "#FFFFFF" }
+    ];
+
+    let lpmColorIndex = 1, ppmColorIndex = 0;
+    let port = null, writer = null;
+    let isSending = false;
+
+    const mouseLmb = document.getElementById('mouse-lmb');
+    const mouseRmb = document.getElementById('mouse-rmb');
+
+    const xLabels = document.getElementById('xLabels');
+    for(let i=0; i<10; i++) xLabels.innerHTML += `<div>${i}</div>`;
+    const yLabels = document.getElementById('yLabels');
+    for(let i=0; i<20; i++) yLabels.innerHTML += `<div>${i}</div>`;
+
+    function getContrastColor(hex) {
+        const r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+        return (((r * 299) + (g * 587) + (b * 114)) / 1000 >= 128) ? 'black' : 'white';
+    }
+
+    function updateMouseIcon() {
+        mouseLmb.style.fill = COLOR_PALETTE[lpmColorIndex].c;
+        mouseRmb.style.fill = COLOR_PALETTE[ppmColorIndex].c;
+    }
+
+    function renderPalette() {
+        const paletteDiv = document.getElementById('palette');
+        paletteDiv.innerHTML = '';
+        COLOR_PALETTE.forEach((color, index) => {
+            const swatch = document.createElement('div');
+            swatch.className = 'swatch' + (index === lpmColorIndex ? ' active-lpm' : '') + (index === ppmColorIndex ? ' active-ppm' : '');
+            swatch.style.backgroundColor = color.c;
+            swatch.style.color = getContrastColor(color.c);
+            swatch.innerHTML = `<span>${color.n}</span> <span style="margin-left:auto; font-size:8px; opacity:0.7;">${index === lpmColorIndex ? 'LEFT ' : ''}${index === ppmColorIndex ? 'RIGHT ' : ''}</span>`;
+            swatch.onmousedown = (e) => {
+                if (e.button === 0) lpmColorIndex = index;
+                if (e.button === 2) ppmColorIndex = index;
+                renderPalette();
+            };
+            paletteDiv.appendChild(swatch);
+        });
+        updateMouseIcon();
+    }
+
+    const cursorDisplay = document.getElementById('cursor-coords');
+    const cells = [];
+    const grid = document.getElementById('grid');
+    const chkAutoSend = document.getElementById('chkAutoSend');
+    const btnSend = document.getElementById('btnSend');
+
+    async function sendData() {
+        if (!writer || isSending) return;
+        isSending = true;
+        if (!chkAutoSend.checked) btnSend.disabled = true;
+
+        const buffer = new Uint8Array(102);
+        buffer[0] = 0xF1;
+        for (let i = 0; i < 100; i++) {
+            const c1 = parseInt(cells[i * 2].dataset.colorIndex) || 0;
+            const c2 = parseInt(cells[i * 2 + 1].dataset.colorIndex) || 0;
+            buffer[i + 1] = (c1 << 4) | (c2 & 0x0F);
+        }
+        buffer[101] = 0xF0;
+        
+        try { await writer.write(buffer); } catch (e) {}
+        
+        isSending = false;
+        if (!chkAutoSend.checked) btnSend.disabled = false;
+    }
+
+    for (let i = 0; i < 200; i++) {
+        const cell = document.createElement('div');
+        const x = i % 10, y = Math.floor(i / 10);
+        cell.className = 'cell';
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+        cell.dataset.colorIndex = 0;
+
+        const handlePaint = (e) => {
+            let changed = false;
+            if (e.buttons === 1 && cell.dataset.colorIndex != lpmColorIndex) {
+                cell.style.backgroundColor = COLOR_PALETTE[lpmColorIndex].c; 
+                cell.dataset.colorIndex = lpmColorIndex; 
+                changed = true;
+            } else if (e.buttons === 2 && cell.dataset.colorIndex != ppmColorIndex) {
+                cell.style.backgroundColor = COLOR_PALETTE[ppmColorIndex].c; 
+                cell.dataset.colorIndex = ppmColorIndex; 
+                changed = true;
+            }
+            if (changed && chkAutoSend.checked) sendData();
+        };
+
+        cell.onmousedown = (e) => { e.preventDefault(); handlePaint(e); };
+        cell.onmouseenter = (e) => { handlePaint(e); cursorDisplay.innerText = `CURSOR: X=${x}, Y=${y}`; };
+        grid.appendChild(cell);
+        cells.push(cell);
+    }
+
+    grid.onmouseleave = () => { cursorDisplay.innerText = "CURSOR: --, --"; };
+
+    async function toggleConnection() {
+        if (port) {
+            if (writer) { await writer.close(); writer.releaseLock(); writer = null; }
+            await port.close(); port = null;
+            btnConnect.innerText = "CONNECT"; btnConnect.className = "disconnected"; 
+            btnSend.disabled = true;
+        } else {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 });
+                writer = port.writable.getWriter();
+                btnConnect.innerText = "DISCONNECT"; btnConnect.className = "connected"; 
+                btnSend.disabled = chkAutoSend.checked;
+            } catch (e) { alert("Error"); }
+        }
+    }
+    document.getElementById('btnConnect').onclick = toggleConnection;
+
+    chkAutoSend.onchange = () => { if (port) btnSend.disabled = chkAutoSend.checked; };
+    btnSend.onclick = sendData;
+
+    document.getElementById('btnExport').onclick = () => {
+        let name = prompt("Filename:", "art");
+        if (!name) return;
+        const data = cells.map(c => c.dataset.colorIndex).join(',');
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([data], {type: 'text/plain'}));
+        a.download = name.endsWith('.disp') ? name : name + '.disp';
+        a.click();
+    };
+
+    document.getElementById('btnImport').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('fileInput').onchange = (e) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            ev.target.result.split(',').forEach((idx, i) => { 
+                if(cells[i]) { cells[i].dataset.colorIndex = idx; cells[i].style.backgroundColor = COLOR_PALETTE[idx].c; } 
+            });
+            if (chkAutoSend.checked) sendData();
+        };
+        reader.readAsText(e.target.files[0]);
+    };
+
+    document.getElementById('btnClear').onclick = () => { 
+        if(confirm("Sure?")) {
+            cells.forEach(c => { c.dataset.colorIndex = 0; c.style.backgroundColor = "#000"; });
+            if (chkAutoSend.checked) sendData();
+        }
+    };
+
+    renderPalette();
+</script>
+</body>
+</html>
