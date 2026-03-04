@@ -103,7 +103,7 @@ Aplikację symulatora kompiluj poleceniem `make` (lub `make run`, aby automatycz
 
 ## Kompatybilność z projektem w Arduino IDE
 
-Symulator zapewnia pełną kompatybilność ze wszystkimi wypisanymi metodami dotyczącymi obsługi [wyświetlacza matrycowego](#obsługa-głównego-wyświetlacza-matrycowego-10x20) oraz [przycisków](#obsługa-przycisków), a także z funkcją `millis()`, która zwraca liczbę milisekund od uruchomienia programu. Przyciski na klawiaturze zmapowane są w następujący sposób:
+Symulator zapewnia pełną kompatybilność ze wszystkimi wypisanymi metodami dotyczącymi obsługi [wyświetlacza matrycowego](#obsługa-głównego-wyświetlacza-matrycowego) oraz [przycisków](#obsługa-przycisków), a także z funkcją `millis()`, która zwraca liczbę milisekund od uruchomienia programu. Przyciski na klawiaturze zmapowane są w następujący sposób:
 
 - Strzałka w lewo **-** `BTN_L`<br>
 - Strzałka w prawo **-** `BTN_R`<br>
