@@ -4,7 +4,19 @@ Tetris::Tetris()
   : block(this) {}
 
 void Tetris::setup() {
-  block.spawn(3, 20, random(0, 7));
+  file.loadData("Tetris", &fileData, sizeof(fileData));
+
+  tft.fillScreen(COLOR_BG);
+  tft.fillRect(0, 0, 160, 24, COLOR_TOP_BAR);
+  tft.setTextColor(COLOR_BG, COLOR_TOP_BAR);
+  printCentered("TETRIS", 5, 2);
+  tft.setTextColor(COLOR_TEXT);
+  printCentered("SCORE", 35, 1);
+  printCentered("HI-SCORE", 92, 1);
+  updateScore();
+  printHiScore();
+
+  generateBlock();
 }
 
 void Tetris::loop() {
@@ -15,7 +27,15 @@ void Tetris::loop() {
   if (keys.isDown(BTN_L) && keys.isDown(BTN_R)) moveLMillis = moveRMillis = currentMillis;
   if (!keys.isDown(BTN_D)) moveDownSpeedLock = false;
 
-  if (!actionDelay.active) {
+  if (keys.wasPressed(BTN_ESC)) {
+    if (score > fileData.hiScore) {
+      fileData.hiScore = score;
+      file.saveData("Tetris", &fileData, sizeof(fileData));
+      printHiScore();
+    }
+  }
+
+  if (!actionDelay.active && !gameOver) {
     if (keys.wasPressed(BTN_L)) {
       block.moveSideways(-1);
     }
@@ -38,20 +58,29 @@ void Tetris::loop() {
       block.rotate();
     }
 
-    if (currentMillis - moveDownMillis >= (keys.isDown(BTN_D) && !moveDownSpeedLock ? moveDownFastInterval : moveDownSlowInterval)) {
+    bool moveDownFast = keys.isDown(BTN_D) && !moveDownSpeedLock;
+
+    if (currentMillis - moveDownMillis >= (moveDownFast ? moveDownFastInterval : moveDownSlowInterval)) {
       moveDownMillis = currentMillis;
 
       if (!block.moveDown()) {
-        if (!block.save_position()) { 
-          switchGame = 0; //game over!!!
+        if (!block.save_position()) {
+          gameOver = true;
+          tft.setTextColor(COLOR_BG, COLOR_TOP_BAR);
+          printCentered("GAME OVER!", 5, 2);
+          if (score > fileData.hiScore) {
+            fileData.hiScore = score;
+            file.saveData("Tetris", &fileData, sizeof(fileData));
+            printHiScore();
+          }
         }
 
         if (block.filled_line()) remove_lines();
 
-        block.spawn(3, 20, random(0, 7));
+        generateBlock();
 
         moveDownSpeedLock = true;
-      }
+      } else if (moveDownFast) updateScore(1);
     }
   }
 
@@ -60,14 +89,20 @@ void Tetris::loop() {
 
     switch (actionDelay.action) {
       case SET_LINES_BLACK:
+        linesCount = 0;
         for (uint8_t i = 0; i < 20; i++) {
           if (lines_to_remove[i]) {
+            linesCount++;
             for (uint8_t j = 0; j < 10; j++)
               setPixel(j, 19 - i, BLACK);
           }
         }
         FastLED.show();
         setActionDelay(REMOVE_LINES, 250);
+
+        updateScore(linesPoints[linesCount - 1]);
+        moveDownSlowInterval -= linesCount * 10;
+        if (moveDownSlowInterval < 100) moveDownSlowInterval = 100;
         break;
 
       case REMOVE_LINES:
@@ -105,7 +140,6 @@ void Tetris::setActionDelay(uint8_t a, uint16_t d) {
 }
 
 void Tetris::remove_lines() {
-
   for (uint8_t i = 0; i < 20; i++) {
     if (lines_to_remove[i]) {
       for (uint8_t j = 0; j < 10; j++)
@@ -113,8 +147,39 @@ void Tetris::remove_lines() {
     }
   }
   FastLED.show();
-
   setActionDelay(SET_LINES_BLACK, 400);
+}
+
+void Tetris::generateBlock() {
+  uint8_t r;
+  do r = random(0, 7);
+  while (blocks7Bag[r] == 1);
+  blocks7Bag[r] = 1;
+
+  blocks7BagCounter++;
+
+  if (blocks7BagCounter == 7) {
+    blocks7BagCounter = 0;
+    for (uint8_t i = 0; i < 7; i++) blocks7Bag[i] = 0;
+  }
+
+  block.spawn(3, 20, r);
+}
+
+void Tetris::updateScore(uint16_t addPoints) {
+  score += addPoints;
+
+  char buf[8];
+  sprintf(buf, "%d", score);
+  tft.setTextColor(COLOR_SCORE, COLOR_BG);
+  printCentered(buf, 48, 3);
+}
+
+void Tetris::printHiScore() {
+  char buf[8];
+  sprintf(buf, "%d", fileData.hiScore);
+  tft.setTextColor(COLOR_HIGH_SCORE, COLOR_BG);
+  printCentered(buf, 105, 2);
 }
 
 void TetrisBlock::spawn(uint8_t xStart, uint8_t yStart, uint8_t n) {

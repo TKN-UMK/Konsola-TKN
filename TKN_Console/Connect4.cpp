@@ -32,7 +32,7 @@ void Connect4::newRound() {
 
   tft.fillScreen(COLOR_BG);
   tft.fillRect(0, 0, 160, 24, COLOR_TOP_BAR);
-  tft.setTextColor(ST7735_BLACK);
+  tft.setTextColor(COLOR_BG);
   printCentered("CONNECT 4", 5, 2);
   tft.setTextColor(COLOR_GREEN);
   tft.drawLine(5, 75, 44, 75, COLOR_GREEN);
