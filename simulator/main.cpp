@@ -1,9 +1,13 @@
 #include "Engine.h"
+
+//--------------------------------
+
 #include "SimGame.h"
+Game* activeGame = new SimGame();
+
+//---------------------------------
 
 InputManager keys;
-Game* activeGame = nullptr;
-
 const uint32_t btnExitHoldTime = 1500;
 
 RaylibColor ledMatrix[COLS][ROWS];
@@ -32,7 +36,6 @@ int main() {
   }
 
   keys.begin(KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_ENTER, KEY_BACKSPACE);
-  activeGame = new SimGame();
   activeGame->setup();
 
   while (!WindowShouldClose()) {
