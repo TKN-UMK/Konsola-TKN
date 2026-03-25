@@ -5,6 +5,7 @@
 #include "DemoGame.h"
 #include "Tetris.h"
 #include "Connect4.h"
+#include "SnakeGame.h"
 
 #define ADDGAME(GAME_CLASS, GAME_NAME) { GAME_NAME, []() -> Game* { return new GAME_CLASS(); } },
 typedef Game* (*GameClass)();
@@ -17,6 +18,7 @@ struct GameEntry {
 const GameEntry GAMES_LIST[] = {
     ADDGAME(Tetris, "TETRIS")
     ADDGAME(Connect4, "CONNECT 4")
+    ADDGAME(SnakeGame, "SNAKE")
     ADDGAME(DemoGame, "DEMO")
 };
 
