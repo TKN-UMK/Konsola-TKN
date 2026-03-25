@@ -6,6 +6,7 @@
 #include "Tetris.h"
 #include "Connect4.h"
 #include "SnakeGame.h"
+#include "SpikesGame.h"
 
 #define ADDGAME(GAME_CLASS, GAME_NAME) { GAME_NAME, []() -> Game* { return new GAME_CLASS(); } },
 typedef Game* (*GameClass)();
@@ -19,6 +20,7 @@ const GameEntry GAMES_LIST[] = {
     ADDGAME(Tetris, "TETRIS")
     ADDGAME(Connect4, "CONNECT 4")
     ADDGAME(SnakeGame, "SNAKE")
+    ADDGAME(SpikesGame, "SPIKES GAME")
     ADDGAME(DemoGame, "DEMO")
 };
 
