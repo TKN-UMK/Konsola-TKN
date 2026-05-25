@@ -30,7 +30,7 @@
 
 To repozytorium dotyczy konsoli do gier stworzonej w ramach Technicznego Koła Naukowego na UMK w Toruniu.
 
-Założeniem projektu jest możliwość napisania własnych gier przez studentów w języku C++. Gry można testować w dedykowanym [symulatorze](#symulator), a następnie (samodzielnie lub z pomocą opiekuna projektu - przewodniczącego TKN) zaprogramować na fizycznej konsoli w wykorzystaniem środowiska Arduino IDE. 
+Założeniem projektu jest możliwość napisania własnych gier przez studentów w języku C++. Gry można testować w dedykowanym [symulatorze](#symulator), a następnie (samodzielnie lub z pomocą opiekuna projektu - przewodniczącego TKN) zaprogramować na fizycznej konsoli z wykorzystaniem środowiska Arduino IDE. 
 
 ## Obsługa i działanie konsoli
 
